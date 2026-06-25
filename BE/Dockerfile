@@ -17,4 +17,4 @@ RUN composer install --optimize-autoloader --no-dev \
 
 COPY .docker/apache.conf /etc/apache2/sites-available/000-default.conf
 
-CMD ["sh", "-c", "php artisan config:clear 2>&1 && php artisan cache:clear 2>&1 && php artisan migrate --force 2>&1 && echo 'ALL DONE - Starting Apache' && apache2-foreground"]
+CMD ["sh", "-c", "php artisan config:clear 2>&1 | tee /tmp/boot.log && php artisan cache:clear 2>&1 | tee -a /tmp/boot.log && php artisan migrate --force 2>&1 | tee -a /tmp/boot.log && echo 'Starting Apache' | tee -a /tmp/boot.log && apache2-foreground 2>&1 | tee -a /tmp/boot.log || (cat /tmp/boot.log && sleep 30)"]
