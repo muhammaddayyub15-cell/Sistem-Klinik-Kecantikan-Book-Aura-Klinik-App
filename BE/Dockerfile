@@ -17,4 +17,4 @@ RUN composer install --optimize-autoloader --no-dev \
 
 COPY .docker/apache.conf /etc/apache2/sites-available/000-default.conf
 
-CMD ["sh", "-c", "php artisan config:clear && php artisan cache:clear && php artisan migrate --force && apache2-foreground"]
+CMD ["sh", "-c", "php artisan config:clear 2>&1 && php artisan cache:clear 2>&1 && php artisan migrate --force 2>&1 && echo 'ALL DONE - Starting Apache' && apache2-foreground"]
