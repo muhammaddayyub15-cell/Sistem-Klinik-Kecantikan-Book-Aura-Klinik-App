@@ -1,4 +1,4 @@
-FROM php:8.4-apache
+FROM php:8.2-apache
 
 RUN apt-get update && apt-get install -y \
     curl zip unzip git \
@@ -16,7 +16,5 @@ RUN composer install --optimize-autoloader --no-dev \
     && chown -R www-data:www-data storage bootstrap/cache
 
 COPY .docker/apache.conf /etc/apache2/sites-available/000-default.conf
-
-EXPOSE 80
 
 CMD ["sh", "-c", "php artisan config:clear && php artisan cache:clear && php artisan migrate --force && apache2-foreground"]
