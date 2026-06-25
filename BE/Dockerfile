@@ -1,0 +1,19 @@
+FROM php:8.4-cli
+
+RUN apt-get update && apt-get install -y \
+    curl zip unzip git \
+    libpng-dev libxml2-dev libzip-dev \
+    libonig-dev \
+    && docker-php-ext-install pdo pdo_mysql mbstring xml zip gd \
+    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+WORKDIR /app
+COPY . .
+
+RUN composer install --optimize-autoloader --no-dev
+
+RUN chmod -R 775 storage bootstrap/cache && chown -R www-data:www-data storage bootstrap/cache
+
+EXPOSE 8080
+
+CMD ["sh", "-c", "php artisan config:clear && php artisan cache:clear && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"]
