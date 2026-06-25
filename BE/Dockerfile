@@ -1,19 +1,22 @@
-FROM php:8.2-cli
+FROM php:8.4-apache
 
 RUN apt-get update && apt-get install -y \
     curl zip unzip git \
     libpng-dev libxml2-dev libzip-dev \
     libonig-dev \
     && docker-php-ext-install pdo pdo_mysql mbstring xml zip gd \
-    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
+    && a2enmod rewrite
 
-WORKDIR /app
+WORKDIR /var/www/html
 COPY . .
 
-RUN composer install --optimize-autoloader --no-dev
+RUN composer install --optimize-autoloader --no-dev \
+    && chmod -R 775 storage bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache
 
-RUN chmod -R 775 storage bootstrap/cache && chown -R www-data:www-data storage bootstrap/cache
+COPY .docker/apache.conf /etc/apache2/sites-available/000-default.conf
 
-EXPOSE 8080
+EXPOSE 80
 
-CMD ["sh", "-c", "php artisan config:clear && php artisan cache:clear && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"]
+CMD ["sh", "-c", "php artisan config:clear && php artisan cache:clear && php artisan migrate --force && apache2-foreground"]
