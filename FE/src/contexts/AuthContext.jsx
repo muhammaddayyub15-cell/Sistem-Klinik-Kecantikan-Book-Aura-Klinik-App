@@ -21,6 +21,8 @@ export function AuthProvider({ children }) {
         setUser(JSON.parse(storedUser));
 
         // ── Refresh user data dari server agar patient_id selalu fresh ──
+        // [FIX] setIsLoading(false) dipindah ke sini agar fetchBookings/page lain
+        //       tidak fire sebelum token + user benar-benar siap (fix race condition 403)
         getMe()
           .then((res) => {
             const freshUser = res.data?.data ?? res.data;
@@ -34,7 +36,9 @@ export function AuthProvider({ children }) {
             localStorage.removeItem(STORAGE_KEY_USER);
             setUser(null);
             setToken(null);
-          });
+          })
+          .finally(() => setIsLoading(false));
+        return; // hindari setIsLoading(false) di finally luar
       }
     } catch (err) {
       console.error("[AuthContext] Failed to restore session:", err);
